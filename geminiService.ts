@@ -3,13 +3,18 @@ import { GameState, ActionType } from "./types";
 import { SYSTEM_INSTRUCTION } from "./constants";
 
 // ============================================================================
-// HARDCODED API KEYS (ENTER THEM HERE)
+// API KEY CONFIGURATION
 // ============================================================================
-// 1. Google Gemini API Key (starts with AIza...)
-const HARDCODED_GEMINI_KEY = "AIzaSyD3Mxg_SH1QLKo-O9HwR34U0gSJ4A23orY"; 
+// Keys are loaded in the following order (first found wins):
+// 1. Environment variables (GEMINI_API_KEY, INWORLD_API_KEY)
+// 2. Runtime keys set via UI
+// 3. Hardcoded fallbacks (for local development only)
+// ============================================================================
 
-// 2. Inworld API Key (The long Base64 string, excluding "Basic ")
-const HARDCODED_INWORLD_KEY = "VkQ1R2NybmZQcmFzQk00UklGS3lmc29MdEt3Y1BLRkw6U2hiUHoyM3Y2b3l6QkZDSnlYcHB4eWRURWY4WUlDSUF4aERoNkthaTlpMTBweWRlalREYW96QjN3ZDlKT1YyTw=="; 
+// IMPORTANT: For production deployment, set these as environment variables
+// Do not commit real API keys to version control
+const HARDCODED_GEMINI_KEY = ""; // Leave empty for production
+const HARDCODED_INWORLD_KEY = ""; // Leave empty for production
 // ============================================================================
 
 
@@ -63,8 +68,9 @@ const withTimeout = <T>(promise: Promise<T>, ms: number = 10000): Promise<T> => 
 
 // Helper to get Gemini Client with fallback
 const getGeminiClient = () => {
-  const key = (HARDCODED_GEMINI_KEY || process.env.API_KEY || "").trim();
-  if (!key) throw new Error("Missing Gemini API Key");
+  // Priority: process.env > hardcoded fallback
+  const key = (process.env.API_KEY || process.env.GEMINI_API_KEY || HARDCODED_GEMINI_KEY || "").trim();
+  if (!key) throw new Error("Missing Gemini API Key. Set GEMINI_API_KEY environment variable.");
   return new GoogleGenAI({ apiKey: key });
 };
 
@@ -141,10 +147,10 @@ async function generateInworldAudio(text: string, voiceId: string): Promise<Audi
   }
   lastTtsCallTime = Date.now();
 
-  // Priority: Hardcoded -> UI Input -> Env Variable
-  const apiKey = (HARDCODED_INWORLD_KEY || runtimeInworldKey || process.env.INWORLD_API_KEY || "").trim();
+  // Priority: Env Variable -> UI Input -> Hardcoded fallback
+  const apiKey = (process.env.INWORLD_API_KEY || runtimeInworldKey || HARDCODED_INWORLD_KEY || "").trim();
   if (!apiKey) {
-    throw new Error("Missing Inworld API Key. Configure in Settings or geminiService.ts.");
+    throw new Error("Missing Inworld API Key. Set INWORLD_API_KEY environment variable or configure in Settings.");
   }
 
   // Use PascalCase ID for V1
