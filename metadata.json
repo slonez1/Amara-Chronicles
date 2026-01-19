@@ -1,0 +1,7 @@
+{
+  "name": "Chronicles of Amara",
+  "description": "An uncensored, grim dark RPG following Amara, a paladin bound to the parasitic Vexal artifact.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
